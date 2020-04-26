@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cy.pj.sys.dao.SysRoleDao">
+	<!--用于定义mybatis高级映射,如多表查询 -->
+	<resultMap type="com.cy.pj.sys.vo.SysRoleMenuVo"
+		id="sysRoleMenuVo">
+		<!--是居于角色id再次查询菜单id,并将查询结果映射到property -->
+		<id property="id" column="id"></id>
+		<collection property="menuIds" column="id"
+			select="com.cy.pj.sys.dao.SysRoleMenuDao.findMenuIdsByRoleId">
+		</collection>
+	</resultMap>
+	<!--基于id查询角色自身信息 -->
+	<select id="findObjectById" resultMap="sysRoleMenuVo">
+		select id,name,note
+		from sys_roles
+		where id=#{id}
+	</select>
+
+	<!--useGeneratedKeys表示使用insert操作的自增主键值 -->
+	<!--keyProperty表示将获取的自增主键值赋值给参数对象的id属性 -->
+	<insert id="insertObject"
+		parameterType="com.cy.pj.sys.entity.SysRole" useGeneratedKeys="true"
+		keyProperty="id">
+		insert into sys_roles
+		(id,name,note,createdTime,modifiedTime,
+		createdUser,modifiedUser)
+		values
+		(null,#{name},#{note},now(),now(),
+		#{createdUser},#{modifiedUser})
+
+	</insert>
+
+
+	<sql id="queryWhereId">
+		from sys_roles
+		<where>
+			<if test="name!=null and name!=''">
+				name like concat("%",#{name},"%")
+			</if>
+		</where>
+	</sql>
+
+	<select id="findPageObjects"
+		resultType="com.cy.pj.sys.entity.SysRole">
+		select *
+		<include refid="queryWhereId" />
+		order by createdTime desc limit #{startIndex},#{pageSize}
+	</select>
+
+	<select id="getRowCount" resultType="int">
+		select count(id)
+		<include refid="queryWhereId" />
+	</select>
+
+	<delete id="deleteObject">
+		delete from sys_roles where id=#{id}
+	</delete>
+	
+	<update id="updateObject">
+	update sys_roles
+         set
+           name=#{name},
+           note=#{note},
+           modifiedUser=#{modifiedUser},
+           modifiedTime=now()
+        where id=#{id} 
+	</update>
+	<select id="findObjects"
+            resultType="com.cy.pj.common.vo.CheckBox">
+           select id,name
+           from sys_roles
+  </select>
+
+</mapper>
